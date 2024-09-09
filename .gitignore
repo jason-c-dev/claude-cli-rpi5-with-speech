@@ -164,3 +164,4 @@ cython_debug/
 config.json
 history.json
 history_backup_*.*
+logs

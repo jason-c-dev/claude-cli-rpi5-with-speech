@@ -12,6 +12,7 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 - Toggleable speech and text output
 - Customizable system prompt and model selection
 - Error handling and automatic retries for API calls
+- Centralized logging with log rotation
 
 ## Prerequisites
 
@@ -94,6 +95,47 @@ python3 claude-cli-rpi.py
 - `text`: Toggle text output
 - `help`: Display available commands
 
+## File Structure
+
+After running the application, you'll see the following file structure:
+
+```
+your_project_directory/
+├── logs/
+│   ├── claude_cli.log
+│   ├── claude_cli.log.1
+│   ├── claude_cli.log.2
+│   ├── ...
+│   ├── history.json
+│   └── history_backup_YYYYMMDD_HHMMSS.json
+├── claude-cli-rpi.py
+├── config.json
+├── .env
+└── README.md
+```
+
+- The `logs` directory contains all log-related files:
+  - `claude_cli.log`: The current log file
+  - `claude_cli.log.1`, `claude_cli.log.2`, etc.: Rotated log files
+  - `history.json`: The current conversation history
+  - `history_backup_YYYYMMDD_HHMMSS.json`: Backup files of the conversation history
+
+## Logging
+
+The application uses a rotating file handler for logging, which helps manage log file sizes:
+
+- Log files are stored in the `logs` directory.
+- The main log file is named `claude_cli.log`.
+- When a log file reaches 1 MB in size, it's rotated (renamed to `claude_cli.log.1`, etc.).
+- Up to 5 rotated log files are kept before the oldest is deleted.
+- The log level can be set in the `config.json` file (e.g., "INFO", "DEBUG", "WARNING").
+
+## Conversation History
+
+- The conversation history is stored in `logs/history.json`.
+- Each time the history is cleared, a backup is created in the `logs` directory with a timestamp.
+- The history can be viewed using the `history` command in the CLI.
+
 ## Technical Details
 
 ### Code Structure
@@ -104,6 +146,7 @@ The main `ClaudeCLI` class handles all functionality, including:
 - API interactions with Claude AI
 - Text-to-speech conversion and audio playback
 - Command processing and user interface
+- Logging and file management
 
 ### Threading
 
@@ -135,47 +178,9 @@ If you encounter any issues, please check the following:
 - Ensure your Anthropic and AWS API keys are correct in the `.env` file.
 - Verify that you have a stable internet connection.
 - Check the `config.json` file for any syntax errors.
-- Review the application logs for any error messages.
+- Review the application logs in the `logs` directory for any error messages.
 
 For further assistance, please open an issue in this repository.
-
-## AI Assistance in Development
-
-This project was developed with significant assistance from Claude 3.5 Sonnet, an AI model created by Anthropic. Claude provided guidance, code suggestions, and helped refine the implementation throughout the development process. This collaboration showcases the potential of AI-assisted coding in creating complex, functional applications.
-
-### How Claude Assisted
-
-- Provided initial code structure and implementation details
-- Helped debug and optimize the code
-- Offered suggestions for improving functionality and user experience
-- Assisted in writing and formatting documentation, including this README
-
-### Example Prompts Used
-
-Here are some example prompts that were used during the development process:
-
-1. "Can you help me create a Python script to interact with the Claude API and implement a command-line interface?"
-
-2. "I'd like to add speech capabilities using AWS Polly. How can I integrate this into the existing code?"
-
-3. "The audio playback is experiencing delays. Can you suggest a way to implement threaded audio processing to improve performance?"
-
-4. "How can I implement proper error handling and retries for API calls in this application?"
-
-5. "Can you help me update the README to include all the latest functionality and details about the code, threading, etc.?"
-
-These prompts led to detailed discussions and iterative improvements of the code and documentation. The responses from Claude were then reviewed, modified as needed, and integrated into the project.
-
-### Benefits of AI-Assisted Development
-
-- Rapid prototyping and implementation of complex features
-- Access to a broad knowledge base for problem-solving
-- Assistance in writing clear, well-structured documentation
-- Ability to explore multiple approaches to solving problems
-
-While Claude provided significant assistance, human oversight, decision-making, and final implementation were crucial in creating this functional and tailored application.
-
-We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
 
 ## Contributing
 

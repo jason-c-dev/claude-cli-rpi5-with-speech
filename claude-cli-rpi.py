@@ -5,6 +5,7 @@ import threading
 from queue import Queue
 import re
 import logging
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import tempfile
 import uuid
@@ -28,6 +29,8 @@ pygame.mixer.init()
 class ClaudeCLI:
     def __init__(self):
         self.config = self.load_config()
+        self.log_dir = "logs"
+        os.makedirs(self.log_dir, exist_ok=True)
         self.setup_logging()
         self.client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.history = self.load_history()
@@ -46,65 +49,122 @@ class ClaudeCLI:
         self.audio_queue = Queue()
         self.audio_thread = threading.Thread(target=self.audio_player_thread, daemon=True)
         self.audio_thread.start()
+        logging.info("ClaudeCLI initialized successfully")
 
     def load_config(self):
         try:
             with open("config.json", "r") as f:
-                return json.load(f)
+                config = json.load(f)
+            logging.info("Configuration loaded successfully")
+            return config
         except FileNotFoundError:
+            logging.warning("config.json not found. Using default configuration.")
+            return {}
+        except json.JSONDecodeError:
+            logging.error("Error decoding config.json. Using default configuration.")
             return {}
 
     def setup_logging(self):
-        log_level = self.config.get("log_level", "INFO").upper()
-        logging.basicConfig(
-            level=getattr(logging, log_level),
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
-        logging.info(f"Logging level set to {log_level}")
+        log_level_str = self.config.get("log_level", "INFO").upper()
+        log_file = os.path.join(self.log_dir, "claude_cli.log")
+
+        try:
+            log_level = getattr(logging, log_level_str)
+            
+            for handler in logging.root.handlers[:]:
+                logging.root.removeHandler(handler)
+            
+            logger = logging.getLogger()
+            logger.setLevel(log_level)
+
+            file_handler = RotatingFileHandler(
+                log_file,
+                maxBytes=1024 * 1024,  # 1 MB
+                backupCount=5,
+                encoding='utf-8'
+            )
+            file_handler.setLevel(log_level)
+            file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(file_formatter)
+            logger.addHandler(file_handler)
+
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(log_level)
+            console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            console_handler.setFormatter(console_formatter)
+            logger.addHandler(console_handler)
+
+            logging.info(f"Logging initialized. Level: {log_level_str}, File: {log_file}")
+
+        except Exception as e:
+            print(f"Error setting up logging: {str(e)}")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Current working directory: {os.getcwd()}")
+            print(f"Attempted log file path: {os.path.abspath(log_file)}")
 
     def load_history(self):
+        history_file = os.path.join(self.log_dir, "history.json")
         try:
-            with open("history.json", "r", encoding='utf-8') as f:
-                return json.load(f)
+            with open(history_file, "r", encoding='utf-8') as f:
+                history = json.load(f)
+            logging.info("Conversation history loaded successfully")
+            return history
         except FileNotFoundError:
+            logging.warning("history.json not found. Starting with empty history.")
             return []
         except json.JSONDecodeError:
             logging.error("Error decoding history.json. Starting with empty history.")
             return []
 
     def save_history(self):
-        with open("history.json", "w", encoding='utf-8') as f:
+        history_file = os.path.join(self.log_dir, "history.json")
+        with open(history_file, "w", encoding='utf-8') as f:
             json.dump(self.history, f, indent=2, ensure_ascii=False)
-        logging.info("Conversation history saved.")
+        logging.info("Conversation history saved")
 
     def backup_history(self):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"history_backup_{timestamp}.json"
-        with open(backup_filename, "w", encoding='utf-8') as f:
+        backup_file = os.path.join(self.log_dir, backup_filename)
+        with open(backup_file, "w", encoding='utf-8') as f:
             json.dump(self.history, f, indent=2, ensure_ascii=False)
         logging.info(f"Conversation history backed up to {backup_filename}")
+
+    def clear_history(self):
+        logging.info("Clearing conversation history")
+        self.backup_history()
+        self.history = []
+        self.save_history()
+        print(f"{Fore.MAGENTA}Conversation history cleared and backed up.{Style.RESET_ALL}")
 
     def format_messages(self, message):
         messages = self.history + [{"role": "user", "content": message}]
         return messages
 
     async def count_tokens(self, text):
-        return await self.client.count_tokens(text)
+        token_count = await self.client.count_tokens(text)
+        logging.debug(f"Token count: {token_count}")
+        return token_count
 
     def audio_player_thread(self):
+        logging.info("Audio player thread started")
         while True:
             audio_file = self.audio_queue.get()
             if audio_file is None:  # None is our signal to stop
+                logging.info("Audio player thread stopping")
                 break
+            logging.debug(f"Playing audio file: {audio_file}")
             pygame.mixer.music.load(audio_file)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
                 pygame.time.Clock().tick(10)
             os.remove(audio_file)  # Clean up the file after playing
+            logging.debug(f"Finished playing and removed audio file: {audio_file}")
             self.audio_queue.task_done()
 
     async def text_to_speech(self, text, sequence_number):
         try:
+            logging.debug(f"Converting text to speech: '{text[:50]}...'")
             response = self.polly_client.synthesize_speech(
                 Engine=self.aws_polly_engine,
                 LanguageCode='en-US',
@@ -121,6 +181,7 @@ class ClaudeCLI:
                 with open(file_path, 'wb') as file:
                     file.write(response['AudioStream'].read())
                 
+                logging.debug(f"Speech file created: {file_path}")
                 return file_path
             else:
                 logging.error("No AudioStream found in the response")
@@ -153,6 +214,7 @@ class ClaudeCLI:
                 
                 if self.show_tokens:
                     print(f"{Fore.CYAN}Input tokens: {input_tokens}{Style.RESET_ALL}")
+                logging.info(f"Sending message to Claude. Input tokens: {input_tokens}")
 
                 stream = await self.client.messages.create(
                     model=self.model,
@@ -202,6 +264,7 @@ class ClaudeCLI:
                     total_tokens = input_tokens + output_tokens
                     print(f"{Fore.CYAN}Output tokens: {output_tokens}")
                     print(f"Total tokens: {total_tokens}{Style.RESET_ALL}")
+                    logging.info(f"Response received. Output tokens: {output_tokens}, Total tokens: {total_tokens}")
 
                 self.history.append({"role": "user", "content": message})
                 self.history.append({"role": "assistant", "content": full_response})
@@ -209,6 +272,7 @@ class ClaudeCLI:
 
                 # Wait for audio playback to complete
                 self.audio_queue.join()
+                logging.info("Message sent and response processed successfully")
 
                 return
 
@@ -217,10 +281,11 @@ class ClaudeCLI:
                     logging.error(f"Max retries reached. Error: {str(e)}")
                     raise
                 delay = base_delay * (2 ** attempt)
-                logging.warning(f"API error occurred. Retrying in {delay} seconds...")
+                logging.warning(f"API error occurred. Retrying in {delay} seconds... (Attempt {attempt + 1}/{max_retries})")
                 await asyncio.sleep(delay)
 
     async def display_history(self):
+        logging.info("Displaying conversation history")
         for entry in self.history:
             role = entry["role"].capitalize()
             content = entry["content"]
@@ -231,16 +296,12 @@ class ClaudeCLI:
                 print(f"{Fore.CYAN}Tokens: {tokens}{Style.RESET_ALL}")
             print()
 
-    def clear_history(self):
-        self.backup_history()
-        self.history = []
-        self.save_history()
-        print(f"{Fore.MAGENTA}Conversation history cleared and backed up.{Style.RESET_ALL}")
-
     def display_system_prompt(self):
+        logging.info("Displaying system prompt")
         print(f"{Fore.CYAN}Current system prompt: {self.system_prompt}{Style.RESET_ALL}")
 
     def display_model(self):
+        logging.info("Displaying model information")
         print(f"{Fore.CYAN}Current model: {self.model}")
         print(f"Max tokens: {self.max_tokens}")
         print(f"Log level: {logging.getLogger().level}{Style.RESET_ALL}")
@@ -248,19 +309,23 @@ class ClaudeCLI:
     def toggle_tokens(self):
         self.show_tokens = not self.show_tokens
         status = "on" if self.show_tokens else "off"
+        logging.info(f"Token display toggled {status}")
         print(f"{Fore.MAGENTA}Token display is now {status}.{Style.RESET_ALL}")
 
     def toggle_speech(self):
         self.speech_enabled = not self.speech_enabled
         status = "on" if self.speech_enabled else "off"
+        logging.info(f"Speech output toggled {status}")
         print(f"{Fore.MAGENTA}Speech output is now {status}.{Style.RESET_ALL}")
 
     def toggle_text_output(self):
         self.text_output_enabled = not self.text_output_enabled
         status = "on" if self.text_output_enabled else "off"
+        logging.info(f"Text output toggled {status}")
         print(f"{Fore.MAGENTA}Text output is now {status}.{Style.RESET_ALL}")
 
     def display_help(self):
+        logging.info("Displaying help information")
         print(f"{Fore.CYAN}Available commands:")
         print("  exit    - Quit the application")
         print("  system  - Display the current system prompt")
@@ -273,11 +338,14 @@ class ClaudeCLI:
         print(f"  help    - Display this help message{Style.RESET_ALL}")
 
     async def run(self):
+        logging.info("Starting Claude CLI")
         print(f"{Fore.MAGENTA}Welcome to the Claude CLI. Type 'help' for available commands or 'exit' to quit.{Style.RESET_ALL}")
         while True:
             user_input = input(f"{Fore.YELLOW}You: {Style.RESET_ALL}").strip()
+            logging.debug(f"User input: {user_input}")
 
             if user_input.lower() == 'exit':
+                logging.info("Exiting Claude CLI")
                 break
             elif user_input.lower() == 'system':
                 self.display_system_prompt()
@@ -299,8 +367,10 @@ class ClaudeCLI:
                 await self.send_message(user_input)
 
     def shutdown(self):
+        logging.info("Shutting down Claude CLI")
         self.audio_queue.put(None)  # Signal the audio thread to stop
         self.audio_thread.join()  # Wait for the audio thread to finish
+        logging.info("Claude CLI shutdown complete")
 
 if __name__ == "__main__":
     cli = ClaudeCLI()
