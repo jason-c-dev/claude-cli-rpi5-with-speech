@@ -139,10 +139,6 @@ If you encounter any issues, please check the following:
 
 For further assistance, please open an issue in this repository.
 
-## Contributing
-
-Contributions to improve the Claude CLI are welcome. Please feel free to submit pull requests or open issues for bugs and feature requests.
-
 ## AI Assistance in Development
 
 This project was developed with significant assistance from Claude 3.5 Sonnet, an AI model created by Anthropic. Claude provided guidance, code suggestions, and helped refine the implementation throughout the development process. This collaboration showcases the potential of AI-assisted coding in creating complex, functional applications.
@@ -181,6 +177,26 @@ While Claude provided significant assistance, human oversight, decision-making, 
 
 We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
 
+## Contributing
+
+Contributions to improve the Claude CLI are welcome. Please feel free to submit pull requests or open issues for bugs and feature requests.
+
 ## License
 
-[Specify your license here]
+MIT License
+Copyright (c) 2024 Jason Croucher
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
