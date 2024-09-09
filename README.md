@@ -186,6 +186,28 @@ For further assistance, please open an issue in this repository.
 
 Contributions to improve the Claude CLI are welcome. Please feel free to submit pull requests or open issues for bugs and feature requests.
 
+## AI Assistance in Development
+
+This project was developed with significant assistance from Claude 3.5 Sonnet, an AI model created by Anthropic. Claude provided guidance, code suggestions, and helped refine the implementation throughout the development process. This collaboration showcases the potential of AI-assisted coding in creating complex, functional applications.
+
+1. "Can you help me create a Python script to interact with the Claude API and implement a command-line interface?"
+2. "I'd like to add speech capabilities using AWS Polly. How can I integrate this into the existing code?"
+3. "The audio playback is experiencing delays. Can you suggest a way to implement threaded audio processing to improve performance?"
+4. "How can I implement proper error handling and retries for API calls in this application?"
+5. "Can you help me update the README to include all the latest functionality and details about the code, threading, etc.?"
+These prompts led to detailed discussions and iterative improvements of the code and documentation. The responses from Claude were then reviewed, modified as needed, and integrated into the project.
+
+### Benefits of AI-Assisted Development
+
+- Rapid prototyping and implementation of complex features
+- Access to a broad knowledge base for problem-solving
+- Assistance in writing clear, well-structured documentation
+- Ability to explore multiple approaches to solving problems
+
+While Claude provided significant assistance, human oversight, decision-making, and final implementation were crucial in creating this functional and tailored application.
+
+We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
+
 ## License
 
 MIT License
