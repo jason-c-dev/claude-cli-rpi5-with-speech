@@ -9,6 +9,9 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import tempfile
 import uuid
+import sounddevice as sd
+import numpy as np
+import websockets
 
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
@@ -49,6 +52,11 @@ class ClaudeCLI:
         self.audio_queue = Queue()
         self.audio_thread = threading.Thread(target=self.audio_player_thread, daemon=True)
         self.audio_thread.start()
+        self.stt_enabled = self.config.get("stt_enabled", False)
+        self.deepgram_model = self.config.get("deepgram_model", "general")
+        self.deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
+        self.stt_sample_rate = 16000
+        self.stt_chunk_size = 1024
         logging.info("ClaudeCLI initialized successfully")
 
     def load_config(self):
@@ -335,13 +343,69 @@ class ClaudeCLI:
         print("  tokens  - Toggle the display of token counts")
         print("  speech  - Toggle speech output")
         print("  text    - Toggle text output")
+        print("  stt     - Toggle Speech-to-Text input")
         print(f"  help    - Display this help message{Style.RESET_ALL}")
 
+    def toggle_stt(self):
+        self.stt_enabled = not self.stt_enabled
+        status = "on" if self.stt_enabled else "off"
+        logging.info(f"Speech-to-Text toggled {status}")
+        print(f"{Fore.MAGENTA}Speech-to-Text is now {status}.{Style.RESET_ALL}")
+
+    async def listen_for_speech(self):
+        print(f"{Fore.CYAN}Listening...{Style.RESET_ALL}")
+
+        deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=500"
+
+        async with websockets.connect(deepgram_url, extra_headers={"Authorization": f"Token {self.deepgram_api_key}"}) as ws:
+            async def sender(ws):
+                def audio_callback(indata, frames, time, status):
+                    if status:
+                        logging.warning(f"Audio callback status: {status}")
+                    audio_data = indata.tobytes()
+                    asyncio.run_coroutine_threadsafe(ws.send(audio_data), loop)
+
+                with sd.InputStream(samplerate=self.stt_sample_rate, channels=1, dtype='int16', callback=audio_callback, blocksize=self.stt_chunk_size):
+                    while True:
+                        await asyncio.sleep(0.1)
+
+            async def receiver(ws):
+                transcript = ""
+                async for msg in ws:
+                    res = json.loads(msg)
+                    if res.get("speech_final"):
+                        transcript = res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
+                        if transcript.strip():
+                            if transcript.strip():
+                                if "goodbye" in transcript.lower():
+                                    print(f"{Fore.MAGENTA}Goodbye detected. Exiting Claude CLI.{Style.RESET_ALL}")
+                                    return "GOODBYE_DETECTED"
+                                return transcript
+
+            loop = asyncio.get_event_loop()
+            sender_task = asyncio.create_task(sender(ws))
+            transcript = await receiver(ws)
+            sender_task.cancel()
+
+        return transcript
+    
     async def run(self):
         logging.info("Starting Claude CLI")
         print(f"{Fore.MAGENTA}Welcome to the Claude CLI. Type 'help' for available commands or 'exit' to quit.{Style.RESET_ALL}")
         while True:
-            user_input = input(f"{Fore.YELLOW}You: {Style.RESET_ALL}").strip()
+            if self.stt_enabled:
+                try:
+                    user_input = await self.listen_for_speech()
+                    if user_input == "GOODBYE_DETECTED":
+                        logging.info("Exiting Claude CLI due to 'goodbye' detection")
+                        break
+                    print(f"{Fore.YELLOW}You: {user_input}{Style.RESET_ALL}")
+                except Exception as e:
+                    logging.error(f"Error in speech recognition: {str(e)}")
+                    print(f"{Fore.RED}Speech recognition failed. Please type your input.{Style.RESET_ALL}")
+            else:
+                user_input = input(f"{Fore.YELLOW}You: {Style.RESET_ALL}").strip()
+
             logging.debug(f"User input: {user_input}")
 
             if user_input.lower() == 'exit':
@@ -361,6 +425,8 @@ class ClaudeCLI:
                 self.toggle_speech()
             elif user_input.lower() == 'text':
                 self.toggle_text_output()
+            elif user_input.lower() == 'stt':
+                self.toggle_stt()
             elif user_input.lower() == 'help':
                 self.display_help()
             else:
