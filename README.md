@@ -28,8 +28,6 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 
 # Claude CLI for Raspberry Pi 5
 
-[... previous content remains the same ...]
-
 ## Audio Setup for Raspberry Pi
 
 Before running the application, you need to set up the audio input and output on your Raspberry Pi. Follow these steps:
@@ -108,16 +106,16 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
    ```json
    {
      "system_prompt": "You are a helpful AI assistant.",
-     "model": "claude-3-sonnet-20240229",
+     "model": "claude-3-5-sonnet-20240620",
+     "temperature": 0.7,
+     "top_p": 1,
      "max_tokens": 4096,
      "log_level": "INFO",
-     "speech_enabled": true,
-     "text_output_enabled": true,
      "aws_polly_voice": "Ruth",
-     "aws_polly_engine": "neural",
-     "stt_enabled": true,
-     "deepgram_model": "general"
-   }
+     "aws_polly_engine": "generative",
+     "stt_enabled": false,
+     "deepgram_model": "nova-2"
+  }
    ```
 
 7. Ensure that your Raspberry Pi is set up for audio input and output. If you're using HDMI for audio output, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
