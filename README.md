@@ -325,6 +325,9 @@ Note: Many prompts require iteration as you refine Claude's instrustructions to 
 While Claude provided significant assistance, human oversight, decision-making, and final implementation were crucial in creating this functional and tailored application.
 
 We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
+## Example Video
+
+[![Demo Video](https://youtu.be/iZqsa_MswX8/0.jpg)](https://youtu.be/iZqsa_MswX8)]
 
 ## License
 
