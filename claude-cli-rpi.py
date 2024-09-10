@@ -37,7 +37,7 @@ class ClaudeCLI:
         self.setup_logging()
         self.client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.history = self.load_history()
-        self.system_prompt = self.config.get("system_prompt", "You are a helpful AI assistant.")
+        self.system_prompt = self.load_system_prompt()
         self.model = self.config.get("model", "claude-3-sonnet-20240229")
         self.max_tokens = self.config.get("max_tokens", 4096)
         self.show_tokens = False
@@ -71,6 +71,20 @@ class ClaudeCLI:
         except json.JSONDecodeError:
             logging.error("Error decoding config.json. Using default configuration.")
             return {}
+
+    def load_system_prompt(self):
+        system_prompt_file = self.config.get("system_prompt_file", "system_prompt.txt")
+        try:
+            with open(system_prompt_file, "r", encoding='utf-8') as f:
+                system_prompt = f.read().strip()
+            logging.info("System prompt loaded successfully")
+            return system_prompt
+        except FileNotFoundError:
+            logging.error(f"{system_prompt_file} not found. Using default system prompt.")
+            return "You are a helpful AI assistant."
+        except Exception as e:
+            logging.error(f"Error loading system prompt: {str(e)}. Using default system prompt.")
+            return "You are a helpful AI assistant."
 
     def setup_logging(self):
         log_level_str = self.config.get("log_level", "INFO").upper()
@@ -306,7 +320,8 @@ class ClaudeCLI:
 
     def display_system_prompt(self):
         logging.info("Displaying system prompt")
-        print(f"{Fore.CYAN}Current system prompt: {self.system_prompt}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Current system prompt:")
+        print(f"{self.system_prompt}{Style.RESET_ALL}")
 
     def display_model(self):
         logging.info("Displaying model information")
