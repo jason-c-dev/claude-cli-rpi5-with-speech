@@ -115,7 +115,7 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
      "aws_polly_engine": "generative",
      "stt_enabled": false,
      "deepgram_model": "nova-2"
-  }
+   }
    ```
 
 7. Ensure that your Raspberry Pi is set up for audio input and output. If you're using HDMI for audio output, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
