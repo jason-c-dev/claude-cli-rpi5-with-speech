@@ -164,5 +164,5 @@ cython_debug/
 history.json
 history_backup_*.*
 logs
-harmonia_prompt.txt
+harmonia_prompt*.txt
 config.json

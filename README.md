@@ -24,9 +24,49 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 - AWS account for Polly text-to-speech service
 - AWS API key and secret for accessing AWS services
 - Deepgram API key for speech-to-text functionality
-- Microphone connected to the Raspberry Pi
+- Microphone/speaker connected to the Raspberry Pi (see Hardware Setup for specific recommendation)
 
-# Claude CLI for Raspberry Pi 5
+## Hardware Setup
+
+For optimal audio performance, this project was developed and tested using the following speaker/microphone:
+
+- **M4 Bluetooth Speakerphone Conference Microphone**
+  - Features: AI Noise Reduction, Full-Duplex, AI Transcription
+  - 360° Voice Pickup
+  - USB Connectivity
+  - Compatible with Teams/Zoom
+  - Color: Black
+  - Available on Amazon: [M4 Bluetooth Speakerphone](https://www.amazon.com/AISPEECH-Speakerphone-Conference-Full-Duplex-Transcription/dp/B0CCP1J8QW?th=1)
+
+This speakerphone provides excellent audio quality for both input (speech recognition) and output (text-to-speech playback). Its noise reduction and 360° voice pickup features are particularly useful for clear voice input in various environments.
+
+While other microphones and speakers may work, using this or a similar high-quality conference speakerphone is recommended for the best experience with the Claude CLI.
+
+## Third-Party Services
+
+### Anthropic
+
+Anthropic is the company behind Claude, the AI model used in this project. 
+
+- Website: [https://www.anthropic.com](https://www.anthropic.com)
+- SDK: The project uses the `anthropic` Python package. You can install it via pip:
+  ```
+  pip install anthropic
+  ```
+- Documentation: [Anthropic API Documentation](https://docs.anthropic.com/)
+- User Guide: For detailed information on using Claude and the Anthropic API, refer to their [Getting Started Guide](https://docs.anthropic.com/claude/docs/getting-started-with-claude)
+
+### Deepgram
+
+Deepgram provides the speech-to-text functionality for this project.
+
+- Website: [https://deepgram.com](https://deepgram.com)
+- SDK: While this project uses Deepgram's WebSocket API directly, they also offer a Python SDK:
+  ```
+  pip install deepgram-sdk
+  ```
+- Documentation: [Deepgram API Documentation](https://developers.deepgram.com/docs)
+- User Guide: For more information on using Deepgram's speech recognition capabilities, check out their [Python SDK Guide](https://developers.deepgram.com/docs/python-sdk)
 
 ## Audio Setup for Raspberry Pi
 
