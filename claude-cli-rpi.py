@@ -355,7 +355,7 @@ class ClaudeCLI:
     async def listen_for_speech(self):
         print(f"{Fore.CYAN}Listening...{Style.RESET_ALL}")
 
-        deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=500"
+        deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=300"
 
         async with websockets.connect(deepgram_url, extra_headers={"Authorization": f"Token {self.deepgram_api_key}"}) as ws:
             async def sender(ws):
@@ -373,8 +373,9 @@ class ClaudeCLI:
                 transcript = ""
                 async for msg in ws:
                     res = json.loads(msg)
+                    if res.get("is_final"):
+                        transcript += " " + res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
                     if res.get("speech_final"):
-                        transcript = res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
                         if transcript.strip():
                             if transcript.strip():
                                 if "goodbye" in transcript.lower():
