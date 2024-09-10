@@ -1,15 +1,16 @@
 # Claude CLI for Raspberry Pi 5
 
-This project implements an advanced Command Line Interface (CLI) for interacting with Anthropic's Claude AI on a Raspberry Pi 5 running Ubuntu. It features real-time text and speech output, conversation history management, and various customization options.
+This project implements an advanced Command Line Interface (CLI) for interacting with Anthropic's Claude AI on a Raspberry Pi 5 running Ubuntu. It features real-time text and speech input/output, conversation history management, and various customization options.
 
 ## Features
 
 - Interactive conversations with Claude AI
 - Real-time text output
 - Text-to-speech functionality using AWS Polly
+- Speech-to-text functionality using Deepgram API
 - Conversation history management with JSON formatting
 - Token usage tracking
-- Toggleable speech and text output
+- Toggleable speech input/output and text output
 - Customizable system prompt and model selection
 - Error handling and automatic retries for API calls
 - Centralized logging with log rotation
@@ -22,6 +23,57 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 - Anthropic API key for accessing Claude AI
 - AWS account for Polly text-to-speech service
 - AWS API key and secret for accessing AWS services
+- Deepgram API key for speech-to-text functionality
+- Microphone connected to the Raspberry Pi
+
+# Claude CLI for Raspberry Pi 5
+
+[... previous content remains the same ...]
+
+## Audio Setup for Raspberry Pi
+
+Before running the application, you need to set up the audio input and output on your Raspberry Pi. Follow these steps:
+
+1. Update your package list:
+   ```
+   sudo apt-get update
+   ```
+
+2. Install PortAudio and other required development libraries:
+   ```
+   sudo apt-get install libportaudio2 libportaudiocpp0 portaudio19-dev
+   ```
+
+3. If you encounter any issues with audio, you might need to install additional audio-related packages:
+   ```
+   sudo apt-get install libasound-dev
+   ```
+
+4. After installing these libraries, reinstall the `sounddevice` Python package:
+   ```
+   pip install --upgrade sounddevice
+   ```
+
+5. If you're using HDMI for audio output, you might need to force HDMI audio. Edit the `/boot/config.txt` file:
+   ```
+   sudo nano /boot/config.txt
+   ```
+   Add the following line at the end of the file:
+   ```
+   hdmi_drive=2
+   ```
+   Save the file and exit the editor.
+
+6. Reboot your Raspberry Pi to apply the changes:
+   ```
+   sudo reboot
+   ```
+
+7. After rebooting, test your audio input and output:
+   - For audio output: `speaker-test -t wav`
+   - For audio input: `arecord -d 5 test.wav` (records for 5 seconds), then `aplay test.wav` to play it back
+
+If you encounter any issues with audio setup, consult the Raspberry Pi documentation or community forums for troubleshooting specific to your Pi model and OS version.
 
 ## Setup
 
@@ -49,13 +101,8 @@ This project implements an advanced Command Line Interface (CLI) for interacting
    AWS_ACCESS_KEY_ID=your_aws_access_key_id
    AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
    AWS_REGION=your_preferred_aws_region
+   DEEPGRAM_API_KEY=your_deepgram_api_key_here
    ```
-
-   To obtain an Anthropic API key:
-   - Visit the [Anthropic website](https://www.anthropic.com) and sign up for an account.
-   - Navigate to the API section in your account settings.
-   - Generate a new API key and copy it.
-   - Never share your API key publicly or commit it to version control.
 
 6. Create or update the `config.json` file in the project directory with your desired configuration:
    ```json
@@ -67,11 +114,13 @@ This project implements an advanced Command Line Interface (CLI) for interacting
      "speech_enabled": true,
      "text_output_enabled": true,
      "aws_polly_voice": "Ruth",
-     "aws_polly_engine": "neural"
+     "aws_polly_engine": "neural",
+     "stt_enabled": true,
+     "deepgram_model": "general"
    }
    ```
 
-7. Ensure that your Raspberry Pi is set up for audio output. If you're using HDMI for audio, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
+7. Ensure that your Raspberry Pi is set up for audio input and output. If you're using HDMI for audio output, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
    ```
    hdmi_drive=2
    ```
@@ -85,7 +134,7 @@ python3 claude-cli-rpi.py
 
 ### Available Commands:
 
-- `exit`: Quit the application
+- `exit`: Quit the application (can also say "goodbye" if using voice input)
 - `system`: Display the current system prompt
 - `history`: Show the conversation history
 - `model`: Display the current Claude model being used
@@ -93,7 +142,12 @@ python3 claude-cli-rpi.py
 - `tokens`: Toggle the display of token counts
 - `speech`: Toggle speech output
 - `text`: Toggle text output
+- `stt`: Toggle speech-to-text input
 - `help`: Display available commands
+
+### Voice Input
+
+When speech-to-text is enabled, the application will listen for your voice input. You can speak your messages, and the application will transcribe them and send them to Claude. To exit the application using voice, simply say "goodbye".
 
 ## File Structure
 
@@ -113,12 +167,6 @@ your_project_directory/
 ├── .env
 └── README.md
 ```
-
-- The `logs` directory contains all log-related files:
-  - `claude_cli.log`: The current log file
-  - `claude_cli.log.1`, `claude_cli.log.2`, etc.: Rotated log files
-  - `history.json`: The current conversation history
-  - `history_backup_YYYYMMDD_HHMMSS.json`: Backup files of the conversation history
 
 ## Logging
 
@@ -145,6 +193,7 @@ The main `ClaudeCLI` class handles all functionality, including:
 - Conversation management
 - API interactions with Claude AI
 - Text-to-speech conversion and audio playback
+- Speech-to-text conversion using Deepgram API
 - Command processing and user interface
 - Logging and file management
 
@@ -161,6 +210,12 @@ The application uses a separate thread for audio playback to prevent delays in t
 - Each sentence is converted to speech using AWS Polly and saved as a temporary MP3 file.
 - Audio files are queued for playback in the order they are created.
 
+### Speech-to-Text Processing
+
+- The application uses the Deepgram API for real-time speech recognition.
+- When STT is enabled, the application listens for voice input using the connected microphone.
+- Transcribed text is processed and sent to Claude AI for response.
+
 ### Error Handling
 
 - The application includes retry logic for API calls to handle temporary network issues.
@@ -171,14 +226,21 @@ The application uses a separate thread for audio playback to prevent delays in t
 - Ensure proper cooling for your Raspberry Pi 5 during extended use.
 - Maintain a stable internet connection for API communication.
 - The conversation history is automatically saved and can be cleared or displayed using the appropriate commands.
+- When using voice input, speak clearly and wait for the application to process your speech before continuing.
 
 ## Troubleshooting
 
 If you encounter any issues, please check the following:
-- Ensure your Anthropic and AWS API keys are correct in the `.env` file.
+- Ensure your Anthropic, AWS, and Deepgram API keys are correct in the `.env` file.
 - Verify that you have a stable internet connection.
 - Check the `config.json` file for any syntax errors.
 - Review the application logs in the `logs` directory for any error messages.
+- If you're having issues with voice input:
+  - Check your microphone connection and system audio settings.
+  - Ensure you've completed all the steps in the Audio Setup section.
+  - Run `arecord -l` to list audio input devices and make sure your microphone is recognized.
+  - If using a USB microphone, try different USB ports.
+  - Check the audio levels using `alsamixer` and ensure the microphone isn't muted.
 
 For further assistance, please open an issue in this repository.
 
