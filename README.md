@@ -31,7 +31,7 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 For optimal audio performance, this project was developed and tested using the following speaker/microphone:
 
 - **M4 Bluetooth Speakerphone Conference Microphone**
-  - Features: AI Noise Reduction, Full-Duplex, AI Transcription
+  - Features: AI Noise Reduction, Full-Duplex, AI Transcription (seperate app, not related to this project where it's used as a speaker and mic only)
   - 360° Voice Pickup
   - USB Connectivity
   - Compatible with Teams/Zoom
