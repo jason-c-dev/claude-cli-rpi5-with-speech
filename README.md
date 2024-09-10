@@ -119,7 +119,7 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
 
 2. Navigate to the project directory:
    ```
-   cd path/to/claude-cli
+   cd path/to/claude-cli-rpi5-with-speech 
    ```
 
 3. Create a virtual environment (optional but recommended):
