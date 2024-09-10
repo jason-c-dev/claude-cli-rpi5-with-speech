@@ -165,3 +165,4 @@ history.json
 history_backup_*.*
 logs
 harmonia_prompt.txt
+config.json

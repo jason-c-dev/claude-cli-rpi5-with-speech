@@ -105,7 +105,7 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
 6. Create or update the `config.json` file in the project directory with your desired configuration:
    ```json
    {
-     "system_prompt": "You are a helpful AI assistant.",
+     "system_prompt_file": "system_prompt.txt",
      "model": "claude-3-5-sonnet-20240620",
      "temperature": 0.7,
      "top_p": 1,
@@ -118,7 +118,12 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
    }
    ```
 
-7. Ensure that your Raspberry Pi is set up for audio input and output. If you're using HDMI for audio output, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
+7. Create a `system_prompt.txt` file in the project directory with your desired system prompt:
+   ```
+   You are a helpful AI assistant. (Add your custom system prompt here)
+   ```
+
+8. Ensure that your Raspberry Pi is set up for audio input and output. If you're using HDMI for audio output, you might need to force HDMI audio by adding the following line to `/boot/config.txt`:
    ```
    hdmi_drive=2
    ```
@@ -162,6 +167,7 @@ your_project_directory/
 │   └── history_backup_YYYYMMDD_HHMMSS.json
 ├── claude-cli-rpi.py
 ├── config.json
+├── system_prompt.txt
 ├── .env
 └── README.md
 ```
@@ -181,6 +187,16 @@ The application uses a rotating file handler for logging, which helps manage log
 - The conversation history is stored in `logs/history.json`.
 - Each time the history is cleared, a backup is created in the `logs` directory with a timestamp.
 - The history can be viewed using the `history` command in the CLI.
+
+## Customizing the System Prompt
+
+To customize the system prompt:
+
+1. Open the `system_prompt.txt` file in a text editor.
+2. Modify the content to suit your needs. This prompt sets the behavior and context for Claude AI.
+3. Save the file.
+
+The application will automatically load the new system prompt on the next run.
 
 ## Technical Details
 
