@@ -31,7 +31,7 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 For optimal audio performance, this project was developed and tested using the following speaker/microphone:
 
 - **M4 Bluetooth Speakerphone Conference Microphone**
-  - Features: AI Noise Reduction, Full-Duplex, AI Transcription
+  - Features: AI Noise Reduction, Full-Duplex, AI Transcription (seperate app, not related to this project where it's used as a speaker and mic only)
   - 360° Voice Pickup
   - USB Connectivity
   - Compatible with Teams/Zoom
@@ -119,7 +119,7 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
 
 2. Navigate to the project directory:
    ```
-   cd path/to/claude-cli
+   cd path/to/claude-cli-rpi5-with-speech 
    ```
 
 3. Create a virtual environment (optional but recommended):
@@ -325,6 +325,10 @@ Note: Many prompts require iteration as you refine Claude's instrustructions to 
 While Claude provided significant assistance, human oversight, decision-making, and final implementation were crucial in creating this functional and tailored application.
 
 We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
+## Example Video
+
+[![Demo Video](image.png)](https://youtu.be/iZqsa_MswX8)
+
 
 ## License
 
