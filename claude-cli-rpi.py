@@ -368,42 +368,53 @@ class ClaudeCLI:
         print(f"{Fore.MAGENTA}Speech-to-Text is now {status}.{Style.RESET_ALL}")
 
     async def listen_for_speech(self):
-        print(f"{Fore.CYAN}Listening...{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Connecting to Deepgram, please wait...{Style.RESET_ALL}")
 
         deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=300"
 
-        async with websockets.connect(deepgram_url, extra_headers={"Authorization": f"Token {self.deepgram_api_key}"}) as ws:
-            async def sender(ws):
-                def audio_callback(indata, frames, time, status):
-                    if status:
-                        logging.warning(f"Audio callback status: {status}")
-                    audio_data = indata.tobytes()
-                    asyncio.run_coroutine_threadsafe(ws.send(audio_data), loop)
+        try:
+            async with websockets.connect(deepgram_url, extra_headers={"Authorization": f"Token {self.deepgram_api_key}"}) as ws:
+                print(f"{Fore.CYAN}Connected. Listening, now talk...{Style.RESET_ALL}")
 
-                with sd.InputStream(samplerate=self.stt_sample_rate, channels=1, dtype='int16', callback=audio_callback, blocksize=self.stt_chunk_size):
-                    while True:
-                        await asyncio.sleep(0.1)
+                async def sender(ws):
+                    def audio_callback(indata, frames, time, status):
+                        if status:
+                            logging.warning(f"Audio callback status: {status}")
+                        audio_data = indata.tobytes()
+                        asyncio.run_coroutine_threadsafe(ws.send(audio_data), loop)
 
-            async def receiver(ws):
-                transcript = ""
-                async for msg in ws:
-                    res = json.loads(msg)
-                    if res.get("is_final"):
-                        transcript += " " + res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
-                    if res.get("speech_final"):
-                        if transcript.strip():
+                    with sd.InputStream(samplerate=self.stt_sample_rate, channels=1, dtype='int16', callback=audio_callback, blocksize=self.stt_chunk_size):
+                        while True:
+                            await asyncio.sleep(0.1)
+
+                async def receiver(ws):
+                    transcript = ""
+                    async for msg in ws:
+                        res = json.loads(msg)
+                        if res.get("is_final"):
+                            transcript += " " + res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
+                        if res.get("speech_final"):
                             if transcript.strip():
                                 if "goodbye" in transcript.lower():
                                     print(f"{Fore.MAGENTA}Goodbye detected. Exiting Claude CLI.{Style.RESET_ALL}")
                                     return "GOODBYE_DETECTED"
-                                return transcript
+                                return transcript.strip()
 
-            loop = asyncio.get_event_loop()
-            sender_task = asyncio.create_task(sender(ws))
-            transcript = await receiver(ws)
-            sender_task.cancel()
+                loop = asyncio.get_event_loop()
+                sender_task = asyncio.create_task(sender(ws))
+                transcript = await receiver(ws)
+                sender_task.cancel()
 
-        return transcript
+            return transcript
+
+        except websockets.exceptions.WebSocketException as e:
+            print(f"{Fore.RED}Failed to connect to Deepgram: {str(e)}{Style.RESET_ALL}")
+            logging.error(f"WebSocket connection error: {str(e)}")
+            return None
+        except Exception as e:
+            print(f"{Fore.RED}An error occurred during speech recognition: {str(e)}{Style.RESET_ALL}")
+            logging.error(f"Speech recognition error: {str(e)}")
+            return None
     
     async def run(self):
         logging.info("Starting Claude CLI")
