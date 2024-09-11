@@ -1,5 +1,5 @@
 {
-  "system_prompt_file": "memory_game_prompt.txt",
+  "system_prompt_file": "system_prompt.txt",
   "model": "claude-3-5-sonnet-20240620",
   "temperature": 0.7,
   "top_p": 1,

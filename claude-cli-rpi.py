@@ -262,18 +262,12 @@ class ClaudeCLI:
                             full_response += chunk.delta.text
                             sentence_buffer += chunk.delta.text
                             
-                            while True:
-                                sentence_end = sentence_buffer.find('.')
-                                if sentence_end == -1:
-                                    sentence_end = sentence_buffer.find('!')
-                                if sentence_end == -1:
-                                    sentence_end = sentence_buffer.find('?')
-                                if sentence_end == -1:
-                                    break
-                                
-                                sentence = sentence_buffer[:sentence_end+1]
+                            sentences = re.split(r'(?<!\d)(?<!\.\d)(\.|!|\?)\s+', sentence_buffer)
+                            for i in range(0, len(sentences) - 1, 2):
+                                sentence = sentences[i] + sentences[i+1]
                                 await process_sentence(sentence)
-                                sentence_buffer = sentence_buffer[sentence_end+1:].lstrip()
+                            
+                            sentence_buffer = sentences[-1] if sentences else ""
 
                     elif chunk.type == "message_stop":
                         break
@@ -373,7 +367,7 @@ class ClaudeCLI:
     async def listen_for_speech(self):
         print(f"{Fore.CYAN}Connecting to Deepgram, please wait...{Style.RESET_ALL}")
 
-        deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=300"
+        deepgram_url = f"wss://api.deepgram.com/v1/listen?model={self.deepgram_model}&punctuate=true&encoding=linear16&sample_rate={self.stt_sample_rate}&endpointing=500"
 
         try:
             async with websockets.connect(deepgram_url, extra_headers={"Authorization": f"Token {self.deepgram_api_key}"}) as ws:
