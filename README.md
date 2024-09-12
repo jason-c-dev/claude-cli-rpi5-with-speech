@@ -327,7 +327,7 @@ While Claude provided significant assistance, human oversight, decision-making, 
 We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
 ## Example Video
 
-[![Demo Video](image.png)](https://youtu.be/iZqsa_MswX8)
+[![Demo Video]()](https://youtu.be/iZqsa_MswX8)
 
 
 ## License
