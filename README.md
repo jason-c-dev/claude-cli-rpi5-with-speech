@@ -31,7 +31,7 @@ This project implements an advanced Command Line Interface (CLI) for interacting
 For optimal audio performance, this project was developed and tested using the following speaker/microphone:
 
 - **M4 Bluetooth Speakerphone Conference Microphone**
-  - Features: AI Noise Reduction, Full-Duplex, AI Transcription (seperate app, not related to this project where it's used as a speaker and mic only)
+  - Features: AI Noise Reduction, Full-Duplex, AI Transcription (separate app, not related to this project where it's used as a speaker and mic only)
   - 360° Voice Pickup
   - USB Connectivity
   - Compatible with Teams/Zoom
@@ -67,6 +67,18 @@ Deepgram provides the speech-to-text functionality for this project.
   ```
 - Documentation: [Deepgram API Documentation](https://developers.deepgram.com/docs)
 - User Guide: For more information on using Deepgram's speech recognition capabilities, check out their [Python SDK Guide](https://developers.deepgram.com/docs/python-sdk)
+
+### AWS Polly
+
+AWS Polly is used for text-to-speech functionality in this project.
+
+- Website: [https://aws.amazon.com/polly/](https://aws.amazon.com/polly/)
+- SDK: This project uses the `boto3` Python package to interact with AWS services, including Polly:
+  ```
+  pip install boto3
+  ```
+- Documentation: [AWS Polly Documentation](https://docs.aws.amazon.com/polly/)
+- User Guide: For detailed information on using AWS Polly, refer to the [AWS Polly Developer Guide](https://docs.aws.amazon.com/polly/latest/dg/what-is.html)
 
 ## Audio Setup for Raspberry Pi
 
@@ -172,7 +184,7 @@ If you encounter any issues with audio setup, consult the Raspberry Pi documenta
 
 Run the CLI application:
 ```
-python3 claude-cli-rpi.py
+python3 main.py
 ```
 
 ### Available Commands:
@@ -205,7 +217,14 @@ your_project_directory/
 │   ├── ...
 │   ├── history.json
 │   └── history_backup_YYYYMMDD_HHMMSS.json
-├── claude-cli-rpi.py
+├── main.py
+├── claude_cli.py
+├── config_manager.py
+├── log_manager.py
+├── history_manager.py
+├── claude_api_manager.py
+├── audio_manager.py
+├── stt_manager.py
 ├── config.json
 ├── system_prompt.txt
 ├── .env
@@ -242,21 +261,26 @@ The application will automatically load the new system prompt on the next run.
 
 ### Code Structure
 
-The main `ClaudeCLI` class handles all functionality, including:
-- Initialization and configuration loading
-- Conversation management
-- API interactions with Claude AI
-- Text-to-speech conversion and audio playback
-- Speech-to-text conversion using Deepgram API
-- Command processing and user interface
-- Logging and file management
+The application has been refactored into a modular structure with separate manager classes:
+
+- `main.py`: The entry point of the application.
+- `claude_cli.py`: The main `ClaudeCLI` class that orchestrates the entire application.
+- `config_manager.py`: Handles loading and accessing configuration settings.
+- `log_manager.py`: Manages logging setup and provides logging functionality.
+- `history_manager.py`: Manages conversation history, including loading, saving, and backing up.
+- `claude_api_manager.py`: Handles interactions with the Claude API.
+- `audio_manager.py`: Manages audio playback for text-to-speech functionality.
+- `stt_manager.py`: Handles speech-to-text functionality using Deepgram.
+
+This modular structure improves code organization, maintainability, and scalability.
 
 ### Threading
 
-The application uses a separate thread for audio playback to prevent delays in the main conversation loop:
+The application uses separate threads for audio playback and speech recognition to prevent delays in the main conversation loop:
 - The main thread handles user input, API calls, and text processing.
 - A dedicated audio thread manages the queuing and playback of speech audio files.
-- Communication between threads is handled via a thread-safe Queue.
+- A speech recognition thread handles real-time audio capture and processing.
+- Communication between threads is handled via thread-safe Queues.
 
 ### Text-to-Speech Processing
 
@@ -304,16 +328,7 @@ Contributions to improve the Claude CLI are welcome. Please feel free to submit 
 
 ## AI Assistance in Development
 
-This project was developed with significant assistance from Claude 3.5 Sonnet, an AI model created by Anthropic. Claude provided guidance, code suggestions, and helped refine the implementation throughout the development process. This collaboration showcases the potential of AI-assisted coding in creating complex, functional applications. Examples of prompts (but not the ones used) include:
-
-1. "Can you help me create a Python script to interact with the Claude API and implement a command-line interface?"
-2. "I'd like to add speech capabilities using AWS Polly. How can I integrate this into the existing code?"
-3. "The audio playback is experiencing delays. Can you suggest a way to implement threaded audio processing to improve performance?"
-4. "How can I implement proper error handling and retries for API calls in this application?"
-5. "Can you help me update the README to include all the latest functionality and details about the code, threading, etc.?"
-These prompts led to detailed discussions and iterative improvements of the code and documentation. The responses from Claude were then reviewed, modified as needed, and integrated into the project.
-
-Note: Many prompts require iteration as you refine Claude's instrustructions to generate the code you need. 
+This project was developed with significant assistance from Claude 3.5 Sonnet, an AI model created by Anthropic. Claude provided guidance, code suggestions, and helped refine the implementation throughout the development process. This collaboration showcases the potential of AI-assisted coding in creating complex, functional applications.
 
 ### Benefits of AI-Assisted Development
 
@@ -325,23 +340,22 @@ Note: Many prompts require iteration as you refine Claude's instrustructions to 
 While Claude provided significant assistance, human oversight, decision-making, and final implementation were crucial in creating this functional and tailored application.
 
 We encourage users and contributors to explore AI-assisted development in their own projects, as it can be a powerful tool for enhancing productivity and creativity in software development.
-## Example Video
-
-[![Demo Video]()](https://youtu.be/iZqsa_MswX8)
-
 
 ## License
 
 MIT License
 Copyright (c) 2024 Jason Croucher
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
+
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
