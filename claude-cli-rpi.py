@@ -1,3 +1,5 @@
+# orignal code created before refactor ** DO NOT USE FOLLOW README and run main.py **
+
 import os
 import json
 import asyncio
