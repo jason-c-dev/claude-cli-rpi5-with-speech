@@ -1,10 +1,7 @@
 import os
-import asyncio
 import logging
-from dotenv import load_dotenv
 from colorama import init, Fore, Style
 import boto3
-import pygame
 from stt_manager import STTManager
 from history_manager import HistoryManager
 from claude_api_manager import ClaudeAPIManager
@@ -12,14 +9,6 @@ from log_manager import LogManager
 from config_manager import ConfigManager
 from audio_manager import AudioManager
 
-# Initialize colorama
-init(autoreset=True)
-
-# Load environment variables
-load_dotenv()
-
-# Initialize pygame mixer
-pygame.mixer.init()
 
 class ClaudeCLI:
     def __init__(self):
@@ -172,12 +161,3 @@ class ClaudeCLI:
             self.stt_manager.stop_audio.set()
         self.audio_manager.shutdown()
         self.logger.info("Claude CLI shutdown complete")
-
-if __name__ == "__main__":
-    cli = ClaudeCLI()
-    try:
-        asyncio.run(cli.run())
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        cli.shutdown()
