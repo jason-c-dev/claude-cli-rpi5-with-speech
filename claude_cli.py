@@ -83,6 +83,10 @@ class ClaudeCLI:
         logging.info(f"Text output toggled {status}")
         print(f"{Fore.MAGENTA}Text output is now {status}.{Style.RESET_ALL}")
 
+    def clear_history(self):
+        self.history_manager.clear_history()
+        print(f"{Fore.MAGENTA}Conversation history cleared and backed up.{Style.RESET_ALL}")
+
     def display_help(self):
         logging.info("Displaying help information")
         print(f"{Fore.CYAN}Available commands:")
