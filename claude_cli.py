@@ -32,7 +32,7 @@ class ClaudeCLI:
     async def send_message(self, message):
         response = await self.claude_api.send_message(
             message, 
-            self.history_manager.get_recent_history(), 
+            self.history_manager.get_history(), 
             self.speech_enabled, 
             self.text_output_enabled, 
             self.show_tokens, 

@@ -51,5 +51,5 @@ class HistoryManager:
         self.history.append({"role": role, "content": content})
         # Removed self.save_history() from here
 
-    def get_recent_history(self, num_messages=10):
-        return self.history[-num_messages:] if len(self.history) > num_messages else self.history
+    def get_history(self, num_messages=10):
+        return self.history

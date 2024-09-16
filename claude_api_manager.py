@@ -115,8 +115,6 @@ class ClaudeAPIManager:
                 await asyncio.sleep(delay)
 
     def format_messages(self, message, history):
-        # Only include the last 10 messages to prevent the context from growing too large
-        recent_history = history[-10:] if len(history) > 10 else history
-        formatted_messages = [{"role": entry["role"], "content": entry["content"]} for entry in recent_history]
+        formatted_messages = [{"role": entry["role"], "content": entry["content"]} for entry in history]
         formatted_messages.append({"role": "user", "content": message})
         return formatted_messages
